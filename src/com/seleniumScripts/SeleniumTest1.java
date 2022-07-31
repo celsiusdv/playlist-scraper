@@ -1,10 +1,9 @@
 package com.seleniumScripts;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.pagefactory.ByAll;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -45,16 +44,26 @@ public class SeleniumTest1 {
             System.out.println("all extractions completed successfully");
         }
     }
-
-    public void getLinksAndThumbnails(){//1º------------------------------- getting thumbnails titles and links
+    public int getContentSize(){
         WebDriverWait wait=new WebDriverWait(driver, Duration.ofSeconds(15));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("contents") ) );
-
-        container=driver.findElement(new By.ById("contents"));
-        containerVideos=container.findElements(new By.ById("content") );
+        container=driver.findElement(By.id("stats"));
+        String total=container.findElement(By.tagName("span")).getText();
+        int totalVideos=Integer.parseInt(total);
+        return totalVideos;
+    }
+    public void getLinksAndThumbnails() {//1º------------------------------- getting thumbnails titles and links
+        this.getContentSize();
+        int rows=0;
+        do{//expanding de div to the bottom to increase the size of containerVideos
+            container=driver.findElement(new By.ById("contents"));
+            containerVideos=container.findElements(new By.ById("content") );
+            new Actions(driver).sendKeys(Keys.PAGE_DOWN).perform();
+            rows+=5;
+            System.out.println("updating container size: "+containerVideos.size()+" current index: "+rows);
+        }while(rows<this.getContentSize());
 
         for(int i=0;i<containerVideos.size();i++){// ---------------------------------------traversing web elements
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("contents") ) );
             System.out.println("Title: "+containerVideos.get(i).findElement(By.id("video-title"))
                     .getAttribute("title"));
             System.out.println("Link: "+containerVideos.get(i).findElement(By.id("video-title"))
@@ -66,11 +75,12 @@ public class SeleniumTest1 {
 
             if(i==containerVideos.size()-1){// -------------------------------------scrolling up to the first element
                 js.executeScript("window.scrollTo(0, -document.body.scrollHeight)");
-                containerVideos.get(0).findElement(By.id("video-title")).click();
+                containerVideos.get(0).findElement(By.id("video-title")).click();//once scrolled up, click on the first video
             }
         }
     }
     public void getVideoSource() throws InterruptedException {//2º -----------------getting blob src and clicking next button
+        System.out.println("getting blobs and check container size"+containerVideos.size());
         for(int i=0;i<containerVideos.size();i++){
             Thread sourceVideo=new Thread(new Runnable() {
                 public void run() {
@@ -80,6 +90,7 @@ public class SeleniumTest1 {
                 }});
             sourceVideo.start();
             sourceVideo.join();
+            Thread.sleep(200);
             Thread clickNext=new Thread(new Runnable() {
                 public void run() {
                     player=driver.findElement(By.className("ytp-left-controls"));
@@ -89,7 +100,6 @@ public class SeleniumTest1 {
                 }});
             clickNext.start();
             clickNext.join();
-
         }
     }
     public void closeDriverandBrowser(){
