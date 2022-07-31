@@ -15,7 +15,6 @@ public class SeleniumTest1 {
   WebDriver driver;
   JavascriptExecutor js;
   WebElement container,player;
-
   List<WebElement>containerVideos,buttons;
 
     public SeleniumTest1(){
@@ -30,13 +29,13 @@ public class SeleniumTest1 {
         options.addArguments("--disable-gpu ");
         options.addArguments("--no-sandbox");
         driver=new ChromeDriver(options);
-        driver.get("https://www.youtube.com/playlist?list=PLUmlZuWit0rSZGafmtYOKstSfLw7pz8Ip");
+        driver.get("https://www.youtube.com/playlist?list=PLUmlZuWit0rTAnohQA5C1kwl2qD21obOj");
         js = (JavascriptExecutor) driver;
 
         System.out.println(driver.getTitle());
 
         try{
-            this.getLinksandThumbnails();
+            this.getLinksAndThumbnails();
             this.getVideoSource();
         }catch (Exception e){
             this.closeDriverandBrowser();
@@ -47,14 +46,15 @@ public class SeleniumTest1 {
         }
     }
 
-    public void getLinksandThumbnails(){//1º------------------------------- getting thumbnails titles and links
-        WebDriverWait wait=new WebDriverWait(driver, Duration.ofSeconds(1));
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("contents")));
+    public void getLinksAndThumbnails(){//1º------------------------------- getting thumbnails titles and links
+        WebDriverWait wait=new WebDriverWait(driver, Duration.ofSeconds(15));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("contents") ) );
 
         container=driver.findElement(new By.ById("contents"));
-        containerVideos=container.findElements(new By.ById("content"));
+        containerVideos=container.findElements(new By.ById("content") );
 
         for(int i=0;i<containerVideos.size();i++){// ---------------------------------------traversing web elements
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("contents") ) );
             System.out.println("Title: "+containerVideos.get(i).findElement(By.id("video-title"))
                     .getAttribute("title"));
             System.out.println("Link: "+containerVideos.get(i).findElement(By.id("video-title"))
@@ -62,23 +62,35 @@ public class SeleniumTest1 {
             System.out.println("thumbnail: "+containerVideos.get(i).findElement(By.tagName("img"))
                     .getAttribute("src"));
             System.out.println("----------------------------------");
-            js.executeScript("arguments[0].scrollIntoView();", containerVideos.get(i));
+            js.executeScript("arguments[0].scrollIntoView();", containerVideos.get(i));//---scrolling down to the last element
 
-            if(i==containerVideos.size()-1){// -------------------------------------------------scrolling up to the first element
+            if(i==containerVideos.size()-1){// -------------------------------------scrolling up to the first element
                 js.executeScript("window.scrollTo(0, -document.body.scrollHeight)");
                 containerVideos.get(0).findElement(By.id("video-title")).click();
             }
         }
     }
-    public void getVideoSource(){
-        WebDriverWait wait=new WebDriverWait(driver, Duration.ofSeconds(15));
-        wait.until(ExpectedConditions.visibilityOf(player=driver.findElement(By.tagName("video"))));
-        System.out.println(player.getAttribute("src"));
+    public void getVideoSource() throws InterruptedException {//2º -----------------getting blob src and clicking next button
+        for(int i=0;i<containerVideos.size();i++){
+            Thread sourceVideo=new Thread(new Runnable() {
+                public void run() {
+                    WebDriverWait wait=new WebDriverWait(driver, Duration.ofSeconds(15));
+                    wait.until(ExpectedConditions.visibilityOf(player=driver.findElement(By.tagName("video") ) ) );
+                    System.out.println(player.getAttribute("src"));
+                }});
+            sourceVideo.start();
+            sourceVideo.join();
+            Thread clickNext=new Thread(new Runnable() {
+                public void run() {
+                    player=driver.findElement(By.className("ytp-left-controls"));
+                    buttons=player.findElements(By.tagName("a"));
+                    System.out.println("clicking next element");
+                    buttons.get(1).click();
+                }});
+            clickNext.start();
+            clickNext.join();
 
-       player=driver.findElement(By.className("ytp-left-controls"));
-       buttons=player.findElements(By.tagName("a"));
-        System.out.println("clicking next element");
-       buttons.get(1).click();
+        }
     }
     public void closeDriverandBrowser(){
         try {Thread.sleep(100);} catch (InterruptedException e) {System.out.println("error from sleep thread");}
