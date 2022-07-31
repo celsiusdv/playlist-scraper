@@ -16,7 +16,7 @@ public class SeleniumTest1 {
   JavascriptExecutor js;
   WebElement container,player;
 
-  List<WebElement>containerVideos;
+  List<WebElement>containerVideos,buttons;
 
     public SeleniumTest1(){
         System.setProperty("webdriver.chrome.driver","src/chromedriver");
@@ -75,6 +75,10 @@ public class SeleniumTest1 {
         wait.until(ExpectedConditions.visibilityOf(player=driver.findElement(By.tagName("video"))));
         System.out.println(player.getAttribute("src"));
 
+       player=driver.findElement(By.className("ytp-left-controls"));
+       buttons=player.findElements(By.tagName("a"));
+        System.out.println("clicking next element");
+       buttons.get(1).click();
     }
     public void closeDriverandBrowser(){
         try {Thread.sleep(100);} catch (InterruptedException e) {System.out.println("error from sleep thread");}
