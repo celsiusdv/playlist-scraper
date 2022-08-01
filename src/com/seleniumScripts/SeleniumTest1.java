@@ -44,7 +44,7 @@ public class SeleniumTest1 {
             System.out.println("all extractions completed successfully");
         }
     }
-    public int getContentSize(){
+    public int getContentSize(){//1º get amount of videos
         WebDriverWait wait=new WebDriverWait(driver, Duration.ofSeconds(15));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("contents") ) );
         container=driver.findElement(By.id("stats"));
@@ -52,7 +52,7 @@ public class SeleniumTest1 {
         int totalVideos=Integer.parseInt(total);
         return totalVideos;
     }
-    public void getLinksAndThumbnails() {//1º------------------------------- getting thumbnails titles and links
+    public void getLinksAndThumbnails() {//2º------------------------------- getting thumbnails titles and links
         this.getContentSize();
         int rows=0;
         do{//expanding de div to the bottom to increase the size of containerVideos
@@ -63,7 +63,7 @@ public class SeleniumTest1 {
             System.out.println("updating container size: "+containerVideos.size()+" current index: "+rows);
         }while(rows<this.getContentSize());
 
-        for(int i=0;i<containerVideos.size();i++){// ---------------------------------------traversing web elements
+        for(int i=0;i<containerVideos.size();i++){//**************************************traversing web elements
             System.out.println("Title: "+containerVideos.get(i).findElement(By.id("video-title"))
                     .getAttribute("title"));
             System.out.println("Link: "+containerVideos.get(i).findElement(By.id("video-title"))
@@ -71,28 +71,31 @@ public class SeleniumTest1 {
             System.out.println("thumbnail: "+containerVideos.get(i).findElement(By.tagName("img"))
                     .getAttribute("src"));
             System.out.println("----------------------------------");
-            js.executeScript("arguments[0].scrollIntoView();", containerVideos.get(i));//---scrolling down to the last element
+            js.executeScript("arguments[0].scrollIntoView();", containerVideos.get(i));//****scrolling down to the last element
 
-            if(i==containerVideos.size()-1){// -------------------------------------scrolling up to the first element
+            if(i==containerVideos.size()-1){//***************************************************scrolling up to the first element
                 js.executeScript("window.scrollTo(0, -document.body.scrollHeight)");
                 containerVideos.get(0).findElement(By.id("video-title")).click();//once scrolled up, click on the first video
             }
         }
     }
-    public void getVideoSource() throws InterruptedException {//2º -----------------getting blob src and clicking next button
+    public void getVideoSource() throws InterruptedException {//3º -----------------getting blob src and clicking next button
         System.out.println("getting blobs and check container size"+containerVideos.size());
         for(int i=0;i<containerVideos.size();i++){
             Thread sourceVideo=new Thread(new Runnable() {
                 public void run() {
-                    WebDriverWait wait=new WebDriverWait(driver, Duration.ofSeconds(15));
-                    wait.until(ExpectedConditions.visibilityOf(player=driver.findElement(By.tagName("video") ) ) );
-                    System.out.println(player.getAttribute("src"));
+                    try {
+                        Thread.sleep(400);
+                        WebDriverWait wait=new WebDriverWait(driver, Duration.ofSeconds(15));
+                        wait.until(ExpectedConditions.visibilityOf(player=driver.findElement(By.tagName("video") ) ) );
+                        System.out.println(player.getAttribute("src"));
+                    } catch (InterruptedException e) {throw new RuntimeException(e);}
                 }});
             sourceVideo.start();
             sourceVideo.join();
-            Thread.sleep(200);
             Thread clickNext=new Thread(new Runnable() {
                 public void run() {
+                    System.out.println(driver.getTitle());
                     player=driver.findElement(By.className("ytp-left-controls"));
                     buttons=player.findElements(By.tagName("a"));
                     System.out.println("clicking next element");
