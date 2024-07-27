@@ -11,14 +11,14 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.List;
 
-public class SeleniumTest1 {
+public class SeleniumTest {
   WebDriver driver;
   JavascriptExecutor js;
   WebElement container,player;
 
   List<WebElement>containerVideos,buttons;
 
-    public SeleniumTest1(){
+    public SeleniumTest(){
         System.setProperty("webdriver.chrome.driver","src/chromedriver");
         ChromeOptions options = new ChromeOptions();
 
